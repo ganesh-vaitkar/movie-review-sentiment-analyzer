@@ -1,5 +1,5 @@
-import { useState } from 'react';
-// import axios from 'axios';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import ReviewList from './components/ReviewList';
 
 function App() {
@@ -7,41 +7,39 @@ function App() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Simulate API call with dummy response
-  const analyzeSentiment = async (text) => {
+  useEffect(()=>{
+    fetchReviews();
+  },[])
+
+   const fetchReviews = () => {
+     axios
+       .get("http://localhost:3001/list_view")
+       .then((response) => {
+         setReviews(response.data);
+       })
+       .catch((error) => {
+         console.error("error fetching reviews", error);
+       });
+   };
+
+  const analyzeSentiment = (message) =>{
     setLoading(true);
-    try {
-      // In a real app, this would be your actual API endpoint
-      // const response = await axios.post('https://api.example.com/analyze-sentiment', { text });
-      
-      // Simulated API response
-      const dummyResponse = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            data: {
-              text: text,
-              sentiment: Math.floor(Math.random() * (100 - 30 + 1)) + 30, // Random score between 30-100
-              sentiment_type: Math.random() > 0.5 ? 'positive' : 'negative'
-            }
-          });
-        }, 1000); // Simulate network delay
-      });
-
-      const newReview = {
-        text: dummyResponse.data.text,
-        sentiment: dummyResponse.data.sentiment,
-        sentiment_type: dummyResponse.data.sentiment_type
-      };
-
-      setReviews(prevReviews => [newReview, ...prevReviews]);
-      setMessage(''); // Clear input
-    } catch (error) {
-      console.error('Error analyzing sentiment:', error);
-      alert('Failed to analyze sentiment. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    axios.post("http://localhost:3001/analyze", { review : message})
+    .then((response) => {
+      console.log(response.data);
+      setReviews(prevReviews => [response.data, ...prevReviews]);
+      fetchReviews();
+      setMessage('');
+    })
+    .catch((error) => {
+      console.error("Error analyzing sentiment:", error);
+      alert("Error analyzing sentiment. Please try again.")
+    })
+    .finally(()=>{
+      setLoading(false)
+    })
+    ;
+  }
 
   const handleSubmit = () => {
     if (message.trim()) {
@@ -49,13 +47,15 @@ function App() {
     }
   };
 
+ 
+
   return (
     <div className="min-vh-100 d-flex align-items-center bg-light">
       <div className="container py-5">
         <div className="row justify-content-center">
           <div className="col-md-10 col-lg-8">
             {/* Header */}
-            <div className="text-center mb-4">
+            <div className="text-center mb-2">
               <h2 className="mb-3">Movie Review Sentiment Analyzer</h2>
               <p className="text-muted">Enter your movie review below to analyze its sentiment</p>
             </div>
@@ -92,7 +92,8 @@ function App() {
                 </div>
               </div>
             </div>
-
+            
+            <label htmlFor="reviewText" className="form-label">Recent Reviews</label>
             {/* Reviews List Section */}
             <ReviewList reviews={reviews} />
           </div>

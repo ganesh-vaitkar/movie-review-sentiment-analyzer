@@ -11,43 +11,44 @@ function App() {
     fetchReviews();
   },[])
 
-   const fetchReviews = () => {
-     axios
-       .get("http://localhost:3001/list_view")
-       .then((response) => {
-         setReviews(response.data);
-       })
-       .catch((error) => {
-         console.error("error fetching reviews", error);
-       });
-   };
+  const fetchReviews = () => {
+    axios.get("/api/list_view")
+      .then((response) => {
+        setReviews([...response.data].reverse());
+      })
+      .catch((error) => {
+        console.error("Error fetching reviews:", error);
+      });
+  };
 
-  const analyzeSentiment = (message) =>{
+  const analyzeSentiment = (message) => {
     setLoading(true);
-    axios.post("http://localhost:3001/analyze", { review : message})
-    .then((response) => {
-      console.log(response.data);
-      setReviews(prevReviews => [response.data, ...prevReviews]);
-      fetchReviews();
-      setMessage('');
+    const payload = { "review": message };
+    
+    axios.post("/api/analyze", payload, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     })
-    .catch((error) => {
-      console.error("Error analyzing sentiment:", error);
-      alert("Error analyzing sentiment. Please try again.")
-    })
-    .finally(()=>{
-      setLoading(false)
-    })
-    ;
-  }
+      .then((response) => {
+        console.log("Analysis response:", response.data);
+        fetchReviews();
+        setMessage('');
+      })
+      .catch((error) => {
+        console.error("Error analyzing sentiment:", error);
+        alert("Error analyzing sentiment. Please try again.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   const handleSubmit = () => {
     if (message.trim()) {
       analyzeSentiment(message);
     }
   };
-
- 
 
   return (
     <div className="min-vh-100 d-flex align-items-center bg-light">
@@ -93,7 +94,7 @@ function App() {
               </div>
             </div>
             
-            <label htmlFor="reviewText" className="form-label">Recent Reviews</label>
+            
             {/* Reviews List Section */}
             <ReviewList reviews={reviews} />
           </div>

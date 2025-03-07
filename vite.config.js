@@ -5,4 +5,13 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: '/movie-review-sentiment-analyzer/',  // Repository name with correct case
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://172.105.58.210',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
+  }
 })

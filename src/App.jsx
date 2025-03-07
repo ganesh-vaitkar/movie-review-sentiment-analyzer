@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import ReviewList from './components/ReviewList';
+import { getApiUrl, makeApiCall } from './utils/api';
 
 function App() {
   const [message, setMessage] = useState('');
@@ -11,37 +12,33 @@ function App() {
     fetchReviews();
   },[])
 
-  const fetchReviews = () => {
-    axios.get("/api/list_view")
-      .then((response) => {
-        setReviews([...response.data].reverse());
-      })
-      .catch((error) => {
-        console.error("Error fetching reviews:", error);
-      });
+  const fetchReviews = async () => {
+    try {
+      const data = await makeApiCall('/list_view');
+      setReviews([...data].reverse());
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      console.error("Error fetching reviews:", error);
+    } 
   };
 
-  const analyzeSentiment = (message) => {
+  const analyzeSentiment = async (message) => {
     setLoading(true);
-    const payload = { "review": message };
-    
-    axios.post("/api/analyze", payload, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-      .then((response) => {
-        console.log("Analysis response:", response.data);
-        fetchReviews();
-        setMessage('');
-      })
-      .catch((error) => {
-        console.error("Error analyzing sentiment:", error);
-        alert("Error analyzing sentiment. Please try again.");
-      })
-      .finally(() => {
-        setLoading(false);
+    try {
+      const payload = { "review": message };
+      const response = await makeApiCall('/analyze', {
+        method: 'POST',
+        body: JSON.stringify(payload)
       });
+      console.log("Analysis response:", response);
+      await fetchReviews();
+      setMessage('');
+    } catch (error) {
+      console.error("Error analyzing sentiment:", error);
+      alert("Error analyzing sentiment. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = () => {

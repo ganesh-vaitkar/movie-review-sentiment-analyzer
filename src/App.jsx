@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import ReviewList from './components/ReviewList';
-import { getApiUrl, makeApiCall } from './utils/api';
 
 function App() {
   const [message, setMessage] = useState('');
@@ -14,10 +12,13 @@ function App() {
 
   const fetchReviews = async () => {
     try {
-      const data = await makeApiCall('/list_view');
+      const response = await fetch('https://ghanish.in/list_view', {
+        mode: 'cors',
+        credentials: 'include'
+      });
+      const data = await response.json();
       setReviews([...data].reverse());
     } catch (error) {
-      console.error("Error fetching reviews:", error);
       console.error("Error fetching reviews:", error);
     } 
   };
@@ -26,11 +27,17 @@ function App() {
     setLoading(true);
     try {
       const payload = { "review": message };
-      const response = await makeApiCall('/analyze', {
+      const response = await fetch('https://ghanish.in/analyze', {
         method: 'POST',
-        body: JSON.stringify(payload)
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        mode: 'cors',
+        credentials: 'include'
       });
-      console.log("Analysis response:", response);
+      const data = await response.json();
+      console.log("Analysis response:", data);
       await fetchReviews();
       setMessage('');
     } catch (error) {

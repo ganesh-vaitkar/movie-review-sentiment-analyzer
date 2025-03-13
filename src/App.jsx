@@ -6,16 +6,23 @@ function App() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Function to get the appropriate API URL based on environment
+  const getApiUrl = (endpoint) => {
+    // In development, use the proxy defined in vite.config.js
+    if (import.meta.env.DEV) {
+      return `/api${endpoint}`;
+    }
+    // In production, use the direct URL
+    return `https://ghanish.in${endpoint}`;
+  };
+
   useEffect(()=>{
     fetchReviews();
   },[])
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch('https://ghanish.in/list_view', {
-        mode: 'cors',
-        credentials: 'include'
-      });
+      const response = await fetch(getApiUrl('/list_view'));
       const data = await response.json();
       setReviews([...data].reverse());
     } catch (error) {
@@ -27,14 +34,12 @@ function App() {
     setLoading(true);
     try {
       const payload = { "review": message };
-      const response = await fetch('https://ghanish.in/analyze', {
+      const response = await fetch(getApiUrl('/analyze'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload),
-        mode: 'cors',
-        credentials: 'include'
+        body: JSON.stringify(payload)
       });
       const data = await response.json();
       console.log("Analysis response:", data);

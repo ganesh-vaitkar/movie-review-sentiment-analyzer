@@ -8,12 +8,7 @@ function App() {
 
   // Function to get the appropriate API URL based on environment
   const getApiUrl = (endpoint) => {
-    // In development, use the proxy defined in vite.config.js
-    if (import.meta.env.DEV) {
-      return `/api${endpoint}`;
-    }
-    // In production, use a CORS proxy to avoid CORS issues
-    return `https://corsproxy.io/?${encodeURIComponent(`https://ghanish.in${endpoint}`)}`;
+    return `https://ghanish.in${endpoint}`;
   };
 
   useEffect(() => {
